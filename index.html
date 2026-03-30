@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amanda SDR — Arquitetura</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 48px;
+    }
+
+    /* ─── SECTIONS ─────────────────────────────────── */
+    .section {
+      max-width: 960px;
+      margin: 0 auto 48px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6366f1;
+      margin-bottom: 16px;
+    }
+
+    /* ─── FLOW ──────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-box {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 14px 18px;
+      text-align: center;
+      min-width: 130px;
+      position: relative;
+    }
+
+    .flow-box .icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .flow-box .label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .flow-box .sub {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 3px;
+    }
+
+    .flow-box.highlight {
+      background: linear-gradient(135deg, #1e1b4b, #2d2060);
+      border-color: #6366f1;
+    }
+
+    .flow-arrow {
+      font-size: 20px;
+      color: #334155;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+
+    /* ─── GRID 3 ─────────────────────────────────────── */
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .grid3 { grid-template-columns: 1fr; }
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+
+    .card {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #1e1b4b;
+      border: 1px solid #3730a3;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: #a5b4fc;
+      font-family: monospace;
+    }
+
+    .tag.green {
+      background: #052e16;
+      border-color: #166534;
+      color: #86efac;
+    }
+
+    .tag.orange {
+      background: #431407;
+      border-color: #9a3412;
+      color: #fdba74;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .bullet-list li {
+      font-size: 13px;
+      color: #94a3b8;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #6366f1;
+      font-size: 11px;
+      top: 1px;
+    }
+
+    /* ─── RAG CATEGORIES ─────────────────────────────── */
+    .rag-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .rag-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .rag-card {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .rag-card .rag-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .rag-card .rag-cat {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6366f1;
+      margin-bottom: 6px;
+    }
+
+    .rag-card .rag-examples {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    /* ─── SDR FLOW ────────────────────────────────────── */
+    .sdr-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .sdr-step {
+      display: flex;
+      gap: 16px;
+      position: relative;
+    }
+
+    .sdr-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 44px;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #6366f1, #1e2130);
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .step-content {
+      padding-bottom: 28px;
+      flex: 1;
+    }
+
+    .step-content .step-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+
+    .step-content .step-desc {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    .step-content .step-tool {
+      margin-top: 6px;
+    }
+
+    /* ─── PROMPT BREAKDOWN ──────────────────────────── */
+    .prompt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .prompt-grid { grid-template-columns: 1fr; }
+    }
+
+    .prompt-block {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-left: 3px solid #6366f1;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .prompt-block .pb-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6366f1;
+      margin-bottom: 10px;
+    }
+
+    .prompt-block .pb-items {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prompt-block .pb-item {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    /* ─── TOOLS ──────────────────────────────────────── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .tools-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .tool-card {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .tool-card .tool-icon { font-size: 28px; margin-bottom: 8px; }
+    .tool-card .tool-name {
+      font-family: monospace;
+      font-size: 12px;
+      color: #86efac;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .tool-card .tool-desc { font-size: 12px; color: #64748b; }
+
+    /* ─── DIVIDER ────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid #1e2130;
+      margin: 0 auto 48px;
+      max-width: 960px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Amanda SDR — G.A Academia</h1>
+  <p class="subtitle">Arquitetura do sistema · N8N + Pinecone + EvolutionAPI</p>
+
+  <!-- ─── FLUXO GERAL ─────────────────────────── -->
+  <div class="section">
+    <div class="section-title">🔁 Fluxo de uma mensagem</div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-box">
+          <div class="icon">💬</div>
+          <div class="label">Lead manda msg</div>
+          <div class="sub">WhatsApp</div>
+        </div>
+      </div>
+      <div class="flow-arrow">›</div>
+      <div class="flow-step">
+        <div class="flow-box">
+          <div class="icon">⚙️</div>
+          <div class="label">N8N recebe</div>
+          <div class="sub">EvolutionAPI webhook</div>
+        </div>
+      </div>
+      <div class="flow-arrow">›</div>
+      <div class="flow-step">
+        <div class="flow-box">
+          <div class="icon">🗂️</div>
+          <div class="label">Histórico</div>
+          <div class="sub">MongoDB</div>
+        </div>
+      </div>
+      <div class="flow-arrow">›</div>
+      <div class="flow-step">
+        <div class="flow-box highlight">
+          <div class="icon">🔍</div>
+          <div class="label">RAG Query</div>
+          <div class="sub">Pinecone</div>
+        </div>
+      </div>
+      <div class="flow-arrow">›</div>
+      <div class="flow-step">
+        <div class="flow-box highlight">
+          <div class="icon">🤖</div>
+          <div class="label">AI Node</div>
+          <div class="sub">Claude / GPT</div>
+        </div>
+      </div>
+      <div class="flow-arrow">›</div>
+      <div class="flow-step">
+        <div class="flow-box">
+          <div class="icon">✉️</div>
+          <div class="label">Resposta enviada</div>
+          <div class="sub">Split ||| → msgs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ─── PINECONE RAG ─────────────────────────── -->
+  <div class="section">
+    <div class="section-title">🧠 Pinecone — Categorias de documentos</div>
+    <div class="rag-grid">
+      <div class="rag-card">
+        <div class="rag-icon">❓</div>
+        <div class="rag-cat">faq</div>
+        <div class="rag-examples">Horários, estacionamento, vestiário, formas de pagamento, como funciona a matrícula…</div>
+      </div>
+      <div class="rag-card">
+        <div class="rag-icon">📋</div>
+        <div class="rag-cat">programas</div>
+        <div class="rag-examples">Detalhes Wellness / Evolution / Performance, o que cada um inclui, diferenças práticas…</div>
+      </div>
+      <div class="rag-card">
+        <div class="rag-icon">🏆</div>
+        <div class="rag-cat">diferenciais</div>
+        <div class="rag-examples">Por que a GA Academia, diferenciais vs concorrência, ambiente, estrutura, equipe…</div>
+      </div>
+      <div class="rag-card">
+        <div class="rag-icon">🛡️</div>
+        <div class="rag-cat">objeções</div>
+        <div class="rag-examples">Respostas elaboradas pra "tô pensando", "é caro", "não tenho tempo", "fica longe"…</div>
+      </div>
+      <div class="rag-card">
+        <div class="rag-icon">🎉</div>
+        <div class="rag-cat">promoções</div>
+        <div class="rag-examples">Ofertas sazonais, condições especiais, campanhas ativas, parcerias…</div>
+      </div>
+      <div class="rag-card">
+        <div class="rag-icon">👥</div>
+        <div class="rag-cat">equipe</div>
+        <div class="rag-examples">Professores, especialidades, certificações, depoimentos de alunos, cases de sucesso…</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px; background: #1e2130; border: 1px solid #2d3148; border-radius: 10px; padding: 16px;">
+      <div class="section-title" style="margin-bottom: 12px;">📌 Estrutura de metadata por chunk</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span class="tag">categoria: faq | programas | objecoes…</span>
+        <span class="tag">unidade: piratininga | vilas_boas | ambas</span>
+        <span class="tag">idioma: pt-br</span>
+        <span class="tag green">ativo: true | false</span>
+        <span class="tag orange">prioridade: alta | normal</span>
+      </div>
+      <p style="font-size: 12px; color: #64748b; margin-top: 10px;">Filtrar por metadata antes do similarity search = mais precisão + menos tokens usados</p>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ─── SYSTEM PROMPT ──────────────────────── -->
+  <div class="section">
+    <div class="section-title">📝 System Prompt — Blocos</div>
+    <div class="prompt-grid">
+      <div class="prompt-block">
+        <div class="pb-title">🎭 Identidade</div>
+        <div class="pb-items">
+          <div class="pb-item">→ Nome: Amanda, atendente real</div>
+          <div class="pb-item">→ Nunca revelar que é IA</div>
+          <div class="pb-item">→ Tom: amiga, casual, energia positiva</div>
+          <div class="pb-item">→ WhatsApp-first: msgs curtas, emojis</div>
+        </div>
+      </div>
+      <div class="prompt-block">
+        <div class="pb-title">🎯 Objetivo</div>
+        <div class="pb-items">
+          <div class="pb-item">→ Único objetivo: agendar aula experimental</div>
+          <div class="pb-item">→ Nunca fechar venda pelo chat</div>
+          <div class="pb-item">→ Sempre trazer para a academia</div>
+        </div>
+      </div>
+      <div class="prompt-block">
+        <div class="pb-title">🏟️ Academia</div>
+        <div class="pb-items">
+          <div class="pb-item">→ Campo Grande — MS</div>
+          <div class="pb-item">→ Piratininga · Vilas Boas</div>
+          <div class="pb-item">→ Wellness / Evolution / Performance</div>
+          <div class="pb-item">→ Aula experimental: gratuita</div>
+        </div>
+      </div>
+      <div class="prompt-block">
+        <div class="pb-title">📐 Formatação</div>
+        <div class="pb-items">
+          <div class="pb-item">→ Separador ||| = múltiplas mensagens</div>
+          <div class="pb-item">→ Sem parágrafos longos</div>
+          <div class="pb-item">→ Contexto RAG injetado antes da pergunta</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ─── TOOLS ─────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">🔧 Tools disponíveis no AI Node</div>
+    <div class="tools-grid">
+      <div class="tool-card">
+        <div class="tool-icon">📅</div>
+        <div class="tool-name">check_availability</div>
+        <div class="tool-desc">Verifica slots livres no Google Calendar antes de sugerir horários</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">✅</div>
+        <div class="tool-name">create_appointment</div>
+        <div class="tool-desc">Cria evento no calendário com dados do lead confirmados</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">🗂️</div>
+        <div class="tool-name">create_lead</div>
+        <div class="tool-desc">Registra novo lead no Kommo CRM com dados da conversa</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">🔄</div>
+        <div class="tool-name">update_lead</div>
+        <div class="tool-desc">Atualiza estágio do lead no funil conforme conversa avança</div>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ─── SDR FLOW ────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">🚀 Fluxo SDR — passo a passo</div>
+    <div class="sdr-steps">
+      <div class="sdr-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Primeiro contato</div>
+          <div class="step-desc">Cumprimento com energia, pede o nome, pergunta o que motivou o interesse na academia.</div>
+          <div class="step-tool"><span class="tag">create_lead</span></div>
+        </div>
+      </div>
+      <div class="sdr-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Qualificação</div>
+          <div class="step-desc">Descobre objetivo (emagrecer, ganhar massa, saúde…), se já treina, qual unidade é mais acessível.</div>
+          <div class="step-tool"><span class="tag">update_lead</span></div>
+        </div>
+      </div>
+      <div class="sdr-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Apresentação</div>
+          <div class="step-desc">Conecta os diferenciais da academia com o objetivo do lead. Usa RAG para buscar conteúdo relevante.</div>
+          <div class="step-tool"><span class="tag">RAG query → diferenciais</span></div>
+        </div>
+      </div>
+      <div class="sdr-step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Convite para aula experimental</div>
+          <div class="step-desc">Faz o convite de forma natural, sem pressão. A aula experimental é gratuita e sem compromisso.</div>
+        </div>
+      </div>
+      <div class="sdr-step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Agendamento</div>
+          <div class="step-desc">Verifica disponibilidade, propõe 2 opções, confirma nome completo + data + horário + unidade.</div>
+          <div class="step-tool"><span class="tag">check_availability</span> <span class="tag">create_appointment</span></div>
+        </div>
+      </div>
+      <div class="sdr-step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">Confirmação</div>
+          <div class="step-desc">Resume o agendamento por mensagem, avisa que a equipe vai estar esperando. Atualiza Kommo.</div>
+          <div class="step-tool"><span class="tag">update_lead</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
